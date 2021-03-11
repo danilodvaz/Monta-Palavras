@@ -14,7 +14,9 @@ class MontaPalavras
             $letrasValidas = $this->retornaLetras($entrada);
             $letrasNaoUsadas = $this->retornaCaracteresEspeciais($entrada);
 
-            $this->constroiPalavras($letrasValidas);
+            $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas);
+            $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
+            $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
             // var_dump('$letrasValidas', $letrasValidas);
             // var_dump('$letrasNaoUsadas', $letrasNaoUsadas);
 
@@ -95,13 +97,80 @@ class MontaPalavras
             }
 
             if (empty($palavraAuxiliar)) {
-                $palavraConstruida['palavraMontada'] = $palavra;
+                $palavraConstruida['palavra'] = $palavra;
                 $palavraConstruida['letrasNaoUsadas'] = $listaLetrasNaoUsadas;
                 
                 $listaPalavrasMontadas[] = $palavraConstruida;
             }
         }
 
-        var_dump($listaPalavrasMontadas);
+        return $listaPalavrasMontadas;
+    }
+
+    private function pontuaPalavrasMontadas($listaPalavrasMontadas)
+    {
+        $listaPalavrasPontuadas = [];
+
+        foreach ($listaPalavrasMontadas as $palavrasMontadas) {
+            $listaLetras = str_split($palavrasMontadas['palavra']);
+            
+            $totalPontos = array_reduce($listaLetras, function($pontos, $letra) {
+                $pontoLetra = $this->retornaPontoLetra($letra);
+                $pontos += $pontoLetra;
+
+                return $pontos;
+            }, 0);
+            
+            $palavrasMontadas['pontos'] = $totalPontos;
+
+            $listaPalavrasPontuadas[$totalPontos][] = $palavrasMontadas;
+        }
+        
+        return $listaPalavrasPontuadas;
+    }
+
+    private function retornaPontoLetra($letra)
+    {
+        $pontos = [
+            "e" => 1,
+            "a" => 1,
+            "i" => 1,
+            "o" => 1,
+            "n" => 1,
+            "r" => 1,
+            "t" => 1,
+            "l" => 1,
+            "s" => 1,
+            "u" => 1,
+            "d" => 2,
+            "g" => 2,
+            "b" => 3,
+            "c" => 3,
+            "m" => 3,
+            "p" => 3,
+            "f" => 5,
+            "h" => 5,
+            "v" => 5,
+            "j" => 8,
+            "x" => 8,
+            "q" => 13,
+            "z" => 13
+        ];
+
+        $letraMinuscula = mb_strtolower($letra);
+
+        return $pontos[$letraMinuscula];
+    }
+
+    private function retornaPalavraMelhorPontuacao($listaPalavrasPontuadas)
+    {
+        krsort($listaPalavrasPontuadas);
+        $palavrasMelhorPontuacao = array_shift($listaPalavrasPontuadas);
+       
+        if (count($palavrasMelhorPontuacao) > 1) {
+            
+        }
+
+        die;
     }
 }
