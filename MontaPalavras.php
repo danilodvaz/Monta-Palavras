@@ -32,6 +32,34 @@ class MontaPalavras
         return preg_replace("/[a-z ]+/i", "", $string); 
     }
 
+    private function removeAcentos($palavra)
+    {
+        $substituir = [
+            'ç' => 'c',
+            'á' => 'a',
+            'à' => 'a',
+            'â' => 'a',
+            'ã' => 'a',
+            'é' => 'e',
+            'è' => 'e',
+            'ê' => 'e',
+            'í' => 'i',
+            'ì' => 'i',
+            'î' => 'i',
+            'ó' => 'o',
+            'ò' => 'o',
+            'ô' => 'o',
+            'õ' => 'o',
+            'ú' => 'u',
+            'ù' => 'u',
+            'û' => 'u'
+        ];
+        
+        $palavraMinuscula = mb_strtolower($palavra);
+
+        return strtr($palavraMinuscula, $substituir);
+    }
+
     private function retornaBancoPalavras()
     {
         $bancoPalavrasJson = file_get_contents('./BancoPalavras.json');
@@ -42,29 +70,38 @@ class MontaPalavras
 
     private function constroiPalavras($letrasValidas)
     {
-        $palavras = $this->retornaBancoPalavras();
+        $listaBancoPalavras = $this->retornaBancoPalavras();
         $listaLetras = str_split($letrasValidas);
+        $listaPalavrasMontadas = [];
 
-        foreach ($palavras as $palavra) {
-            foreach ($listaLetras as $letra) {
-                if (!empty($palavra)) {
-                    $posicaoLetra = strpos($palavra, $letra);
+        foreach ($listaBancoPalavras as $palavra) {
+            $palavraAuxiliar = $this->removeAcentos($palavra);
+            $listaLetrasNaoUsadas = [];
+
+            foreach ($listaLetras as $index=>$letra) {
+                if (!empty($palavraAuxiliar)) {
+                    $posicaoLetra = strpos($palavraAuxiliar, $letra);
 
                     if ($posicaoLetra === false) {
-                        // Letra não utilizada para formar a palavra
+                        $listaLetrasNaoUsadas[] = $letra;
                     } else {
-                        $palavra = substr_replace($palavra, '', $posicaoLetra, 1);
+                        $palavraAuxiliar = substr_replace($palavraAuxiliar, '', $posicaoLetra, 1);
                     }
                 } else {
+                    $letrasNaoUsadas = array_slice($listaLetras, $index);
+                    $listaLetrasNaoUsadas = array_merge($listaLetrasNaoUsadas, $letrasNaoUsadas);
                     break;
                 }
             }
 
-            if (empty($palavra)) {
-                // adiciona a palavra na lista de montadas
-                // adiciona as letras não utilizadas na lista de letras não utilizadas.
+            if (empty($palavraAuxiliar)) {
+                $palavraConstruida['palavraMontada'] = $palavra;
+                $palavraConstruida['letrasNaoUsadas'] = $listaLetrasNaoUsadas;
+                
+                $listaPalavrasMontadas[] = $palavraConstruida;
             }
         }
 
+        var_dump($listaPalavrasMontadas);
     }
 }
