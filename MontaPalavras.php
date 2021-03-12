@@ -3,24 +3,27 @@
 class MontaPalavras
 {
     private const MSG_ENTRADA = 'Digite as letras disponíveis nesta jogada: ';
+    private const MSG_SEPARADOR = "============================================================\n";
 
     public function iniciaJogo()
     {
         print_r("Monta Palavras\n\n");
 
         do {
+            print_r(self::MSG_SEPARADOR);
+
             $entrada = readline(self::MSG_ENTRADA);
             
-            $letrasValidas = $this->retornaLetras($entrada);
-            $letrasNaoUsadas = $this->retornaCaracteresEspeciais($entrada);
+            if ($entrada != 'exit') {
+                $letrasValidas = $this->retornaLetras($entrada);
+                $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
 
-            $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas);
-            $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
-            $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
-            // var_dump('$letrasValidas', $letrasValidas);
-            // var_dump('$letrasNaoUsadas', $letrasNaoUsadas);
+                $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas);
+                $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
+                $melhorPalavra = $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
 
-
+                $this->imprimeResultado($melhorPalavra, $caracteresInvalidos);
+            }
         } while ($entrada != 'exit');
     }
 
@@ -34,32 +37,37 @@ class MontaPalavras
         return preg_replace("/[a-z ]+/i", "", $string); 
     }
 
+    private function retornaListaLetras($string)
+    {
+        return str_split(mb_strtoupper($string));
+    }
+
     private function removeAcentos($palavra)
     {
         $substituir = [
-            'ç' => 'c',
-            'á' => 'a',
-            'à' => 'a',
-            'â' => 'a',
-            'ã' => 'a',
-            'é' => 'e',
-            'è' => 'e',
-            'ê' => 'e',
-            'í' => 'i',
-            'ì' => 'i',
-            'î' => 'i',
-            'ó' => 'o',
-            'ò' => 'o',
-            'ô' => 'o',
-            'õ' => 'o',
-            'ú' => 'u',
-            'ù' => 'u',
-            'û' => 'u'
+            'Ç' => 'C',
+            'Á' => 'A',
+            'À' => 'A',
+            'Â' => 'A',
+            'Ã' => 'A',
+            'É' => 'E',
+            'È' => 'E',
+            'Ê' => 'E',
+            'Í' => 'I',
+            'Ì' => 'I',
+            'Î' => 'I',
+            'Ó' => 'O',
+            'Ò' => 'O',
+            'Ô' => 'O',
+            'Õ' => 'O',
+            'Ú' => 'U',
+            'Ù' => 'U',
+            'Û' => 'U'
         ];
         
-        $palavraMinuscula = mb_strtolower($palavra);
+        $palavraMaiuscula = mb_strtoupper($palavra);
 
-        return strtr($palavraMinuscula, $substituir);
+        return strtr($palavraMaiuscula, $substituir);
     }
 
     private function retornaBancoPalavras()
@@ -73,11 +81,12 @@ class MontaPalavras
     private function constroiPalavras($letrasValidas)
     {
         $listaBancoPalavras = $this->retornaBancoPalavras();
-        $listaLetras = str_split($letrasValidas);
+        $listaLetras = $this->retornaListaLetras($letrasValidas);
         $listaPalavrasMontadas = [];
 
         foreach ($listaBancoPalavras as $palavra) {
-            $palavraAuxiliar = $this->removeAcentos($palavra);
+            $palavra = $this->removeAcentos($palavra);
+            $palavraAuxiliar = $palavra;
             $listaLetrasNaoUsadas = [];
 
             foreach ($listaLetras as $index=>$letra) {
@@ -112,9 +121,9 @@ class MontaPalavras
         $listaPalavrasPontuadas = [];
 
         foreach ($listaPalavrasMontadas as $palavrasMontadas) {
-            $listaLetras = str_split($palavrasMontadas['palavra']);
+            $listaLetrasPalavra = str_split($palavrasMontadas['palavra']);
             
-            $totalPontos = array_reduce($listaLetras, function($pontos, $letra) {
+            $totalPontos = array_reduce($listaLetrasPalavra, function($pontos, $letra) {
                 $pontoLetra = $this->retornaPontoLetra($letra);
                 $pontos += $pontoLetra;
 
@@ -132,45 +141,106 @@ class MontaPalavras
     private function retornaPontoLetra($letra)
     {
         $pontos = [
-            "e" => 1,
-            "a" => 1,
-            "i" => 1,
-            "o" => 1,
-            "n" => 1,
-            "r" => 1,
-            "t" => 1,
-            "l" => 1,
-            "s" => 1,
-            "u" => 1,
-            "d" => 2,
-            "g" => 2,
-            "b" => 3,
-            "c" => 3,
-            "m" => 3,
-            "p" => 3,
-            "f" => 5,
-            "h" => 5,
-            "v" => 5,
-            "j" => 8,
-            "x" => 8,
-            "q" => 13,
-            "z" => 13
+            "E" => 1,
+            "A" => 1,
+            "I" => 1,
+            "O" => 1,
+            "N" => 1,
+            "R" => 1,
+            "T" => 1,
+            "L" => 1,
+            "S" => 1,
+            "U" => 1,
+            "D" => 2,
+            "G" => 2,
+            "B" => 3,
+            "C" => 3,
+            "M" => 3,
+            "P" => 3,
+            "F" => 5,
+            "H" => 5,
+            "V" => 5,
+            "J" => 8,
+            "X" => 8,
+            "Q" => 13,
+            "Z" => 13
         ];
 
-        $letraMinuscula = mb_strtolower($letra);
-
-        return $pontos[$letraMinuscula];
+        return $pontos[$letra];
     }
 
     private function retornaPalavraMelhorPontuacao($listaPalavrasPontuadas)
     {
-        krsort($listaPalavrasPontuadas);
-        $palavrasMelhorPontuacao = array_shift($listaPalavrasPontuadas);
-       
+        $palavrasMelhorPontuacao = $this->comparaPontos($listaPalavrasPontuadas);
+
         if (count($palavrasMelhorPontuacao) > 1) {
-            
+            $this->comparaOrdemAlfabetica($palavrasMelhorPontuacao);
+            $this->comparaTamanho($palavrasMelhorPontuacao);
         }
 
-        die;
+        $palavra = array_shift($palavrasMelhorPontuacao);
+        
+        return $palavra;
+    }
+
+    private function comparaPontos($listaPalavrasPontuadas)
+    {
+        krsort($listaPalavrasPontuadas);
+        $palavrasMelhorPontuacao = array_shift($listaPalavrasPontuadas);
+
+        return $palavrasMelhorPontuacao;
+    }
+
+    private function comparaOrdemAlfabetica(&$listaPalavras)
+    {
+        function desempataOrdem($a, $b)
+        {
+            return strnatcmp($a['palavra'], $b['palavra']);
+        }
+
+        usort($listaPalavras, 'desempataOrdem');
+    }
+
+    private function comparaTamanho(&$listaPalavras)
+    {
+        function desempataTamanho($a, $b)
+        {
+            return strlen($a['palavra']) <=> strlen($b['palavra']);
+        }
+
+        usort($listaPalavras, 'desempataTamanho');
+    }
+
+    private function imprimeResultado($melhorPalavra, $caracteresInvalidos)
+    {
+        $palavra = $melhorPalavra['palavra'];
+        $pontos = $melhorPalavra['pontos'];
+        $listaLetrasNaoUsadas = $melhorPalavra['letrasNaoUsadas'];
+
+        $letraNaoUsadas = $this->constroiLetrasNaoUsadas($listaLetrasNaoUsadas, $caracteresInvalidos);
+
+        print_r("\n$palavra, palavra de $pontos pontos");
+
+        if ($letraNaoUsadas) {
+            print_r("\nSobraram: $letraNaoUsadas");
+        }
+
+        print_r("\n\n");
+    }
+
+    private function constroiLetrasNaoUsadas($listaLetrasNaoUsadas, $caracteresInvalidos)
+    {
+        $letraNaoUsadas = '';
+
+        if (!empty($listaLetrasNaoUsadas)) {
+            $letraNaoUsadas = implode(', ', $listaLetrasNaoUsadas);
+        }
+
+        if (!empty($caracteresInvalidos)) {
+            $listaCaracteresInvalidos = str_split($caracteresInvalidos);
+            $letraNaoUsadas += ', ' + implode(', ', $listaCaracteresInvalidos);
+        }
+
+        return $letraNaoUsadas;
     }
 }
