@@ -12,11 +12,11 @@ class MontaPalavras
 
         do {
             print_r(self::MSG_SEPARADOR);
-            $entrada = mb_strtoupper(readline(self::MSG_ENTRADA));
 
+            $entrada = mb_strtoupper(readline(self::MSG_ENTRADA));
             $letrasValidas = $this->retornaLetras($entrada);
 
-            if ($entrada != 'SAIR' && $letrasValidas) {
+            if ($entrada != '0' && $letrasValidas) {
                 $melhorPalavra = '';
                 $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
 
@@ -29,7 +29,7 @@ class MontaPalavras
 
                 $this->imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos);
             }
-        } while ($entrada != 'SAIR');
+        } while ($entrada != '0');
     }
 
     private function retornaLetras($string)
@@ -187,8 +187,11 @@ class MontaPalavras
         $palavrasMelhorPontuacao = $this->comparaPontos($listaPalavrasPontuadas);
 
         if (count($palavrasMelhorPontuacao) > 1) {
-            $this->comparaOrdemAlfabetica($palavrasMelhorPontuacao);
-            $this->comparaTamanho($palavrasMelhorPontuacao);
+            $palavrasMelhorPontuacao = $this->comparaTamanho($palavrasMelhorPontuacao);
+
+            if (count($palavrasMelhorPontuacao) > 1) {
+                $this->comparaOrdemAlfabetica($palavrasMelhorPontuacao);
+            }
         }
 
         $palavra = array_shift($palavrasMelhorPontuacao);
@@ -204,6 +207,28 @@ class MontaPalavras
         return $palavrasMelhorPontuacao;
     }
 
+    private function comparaTamanho($listaPalavras)
+    {
+        $primeiraPalavra = array_shift($listaPalavras);
+        $menorTamanho = strlen($primeiraPalavra['palavra']);
+        $listaMenorPalavra[] = $primeiraPalavra;
+        
+        foreach ($listaPalavras as $palavra) {
+            $tamanhoPalavraAtual = strlen($palavra['palavra']);
+        
+            if ($tamanhoPalavraAtual <= $menorTamanho) {
+                if ($tamanhoPalavraAtual < $menorTamanho) {
+                    $listaMenorPalavra = [];
+                    $menorTamanho = $tamanhoPalavraAtual;
+                }
+        
+                $listaMenorPalavra[] = $palavra;
+            }
+        }
+
+        return $listaMenorPalavra;
+    }
+
     private function comparaOrdemAlfabetica(&$listaPalavras)
     {
         function desempataOrdem($a, $b)
@@ -212,16 +237,6 @@ class MontaPalavras
         }
 
         usort($listaPalavras, 'desempataOrdem');
-    }
-
-    private function comparaTamanho(&$listaPalavras)
-    {
-        function desempataTamanho($a, $b)
-        {
-            return strlen($a['palavra']) <=> strlen($b['palavra']);
-        }
-
-        usort($listaPalavras, 'desempataTamanho');
     }
 
     private function imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos)
