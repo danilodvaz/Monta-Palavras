@@ -5,43 +5,134 @@ class MontaPalavras
     private const MSG_TITULO = "Monta Palavras\n\n";
     private const MSG_ENTRADA = 'Digite as letras disponíveis nesta jogada: ';
     private const MSG_SEPARADOR = "============================================================\n";
+    private const DIR_BANCO_PALAVRAS = './BancoPalavras.json';
 
+    /**
+     * Método principal da classe que inicia o jogo
+     * 
+     * Método responsável por preparar o ambiente para o jogo e realizar as 
+     * chamadas dos principais métodos da classe.
+     * 
+     * @return void
+     */
     public function iniciaJogo()
     {
         print_r(self::MSG_TITULO);
+        
+        try {
+            $listaBancoPalavras = $this->retornaBancoPalavras();
 
-        do {
-            print_r(self::MSG_SEPARADOR);
+            do {
+                print_r(self::MSG_SEPARADOR);
+                $entrada = mb_strtoupper(readline(self::MSG_ENTRADA));
+                $letrasValidas = $this->retornaLetras($entrada);
 
-            $entrada = mb_strtoupper(readline(self::MSG_ENTRADA));
-            $letrasValidas = $this->retornaLetras($entrada);
+                if ($entrada != '0' && $letrasValidas) {
+                    $melhorPalavra = '';
+                    $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
 
-            if ($entrada != '0' && $letrasValidas) {
-                $melhorPalavra = '';
-                $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
+                    $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas, $listaBancoPalavras);
 
-                $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas);
+                    if (!empty($listaPalavrasMontadas)) {
+                        $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
+                        $melhorPalavra = $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
+                    }
 
-                if (!empty($listaPalavrasMontadas)) {
-                    $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
-                    $melhorPalavra = $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
+                    $this->imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos);
                 }
-
-                $this->imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos);
-            }
-        } while ($entrada != '0');
+            } while ($entrada != '0');
+        } catch (Throwable $t) {
+            print_r($t->getMessage());
+        }
     }
 
+    /**
+     * Verifica se um arquivo existe 
+     * 
+     * Verifica se o arquivo existe no diretório informado. Se o arquivo for
+     * encontrado, é retornado o booleano true, caso não encontrado, é gerado
+     * um erro
+     * 
+     * @param string $arquivo Diretório do arquivo a ser verificado
+     * 
+     * @return bool
+     */
+    private function verificaArquivoExiste($arquivo)
+    {
+        $arquivoExiste = file_exists($arquivo);
+
+        if (!$arquivoExiste) {
+            throw new Error("Não foi encontrado o arquivo");
+        }
+
+        return true;
+    }
+
+    /**
+     * Verifica se o arquivo possui permissão para leitura
+     * 
+     * Verifica se o arquivo do diretório informado possui permissão para
+     * leitura. Se for possível ler o arquivo, é retornado o booleano true,
+     * caso não seja possível ler o arquivo, é gerado um erro
+     * 
+     * @param string $arquivo Diretório do arquivo a ser verificado
+     * 
+     * @return bool
+     */
+    private function verificaPermissaoLeitura($arquivo)
+    {
+        $permissaoLeitura = is_readable($arquivo);
+
+        if (!$permissaoLeitura) {
+            throw new Error("Não é possível ler o arquivo");
+        }
+
+        return true;
+    }
+
+    /**
+     * Método que retorna apenas letras
+     * 
+     * Recebe uma string contendo qualquer caracter e retorna apenas as letras
+     * maiúsculas ou minúsculas e que não possuam caracteres especiais. 
+     * [a-zA-Z]
+     * 
+     * @param string $string Conjunto de caracteres
+     * 
+     * @return string
+     */
     private function retornaLetras($string)
     {
         return preg_replace("/[^a-z]+/i", "", $string); 
     }
 
+    /**
+     * Método que retorna tudo que não for uma letra
+     * 
+     * Recebe uma string contendo qualquer caracter e retorna o que não
+     * for letra e letras acentuadas
+     * 
+     * @param string $string Conjunto de caracteres
+     * 
+     * @return string
+     */
     private function retornaCaracteresEspeciais($string)
     {
         return preg_replace("/[a-z ]+/i", "", $string); 
     }
 
+    /**
+     * Método que transforma string em um array
+     * 
+     * Recebe qualquer valor e, caso seja uma string, retorna um array contendo
+     * os caracteres daquela string separados em cada posição. Caso a entrada
+     * seja um array, retorna o array sem modificações. Caso a entrada seja
+     * outro tipo, retorna um array vazio.
+     * 
+     * @param mixed $valor Valor a ser convertido
+     * 
+     * @return array
+     */
     private function retornaListaCaracteres($valor)
     {
         if (!is_array($valor)) {
@@ -55,6 +146,13 @@ class MontaPalavras
         return $valor;
     }
 
+    /**
+     * Método responsável por retirar os acentos de uma palavra
+     * 
+     * @param string $palavra Palavra que terá os acentos retirados
+     * 
+     * @return string
+     */
     private function removeAcentos($palavra)
     {
         $substituir = [
@@ -83,72 +181,99 @@ class MontaPalavras
         return strtr($palavraMaiuscula, $substituir);
     }
 
+    /**
+     * Método responável por retorna as palavras do banco de palavras
+     * 
+     * Verifica se o arquivo onde estão as palavras do banco de palavras existe
+     * e se é possível realizar a leitura do mesmo, retornando um array com
+     * todas as palavras disponíveis. Caso não exista ou não seja possível ler
+     * o arquivo, é gerado um erro
+     * 
+     * @return array
+     */
     private function retornaBancoPalavras()
     {
-        $bancoPalavrasJson = file_get_contents('./BancoPalavras.json');
-        $bancoPalavras = json_decode($bancoPalavrasJson, true);
+        try {
+            $this->verificaArquivoExiste(self::DIR_BANCO_PALAVRAS);
+            $this->verificaPermissaoLeitura(self::DIR_BANCO_PALAVRAS);
 
-        return $bancoPalavras['palavras'];
+            $bancoPalavrasJson = file_get_contents(self::DIR_BANCO_PALAVRAS);
+            $bancoPalavras = json_decode($bancoPalavrasJson, true);
+
+            return $bancoPalavras['palavras'];
+        } catch (Throwable $t) {
+            throw new Error($t->getMessage() . ' com o Banco de Palavras');
+        }
     }
 
-    private function constroiPalavras($letrasValidas)
+    /**
+     * 
+     */
+    private function constroiPalavras($letrasValidas, $listaBancoPalavras)
     {
-        $listaBancoPalavras = $this->retornaBancoPalavras();
-        $listaLetras = $this->retornaListaCaracteres($letrasValidas);
-        $listaPalavrasMontadas = [];
+        try {
+            $listaLetras = $this->retornaListaCaracteres($letrasValidas);
+            $listaPalavrasMontadas = [];
 
-        foreach ($listaBancoPalavras as $palavra) {
-            $palavra = $this->removeAcentos($palavra);
-            $palavraAuxiliar = $palavra;
-            $listaLetrasNaoUsadas = [];
+            foreach ($listaBancoPalavras as $palavra) {
+                $palavra = $this->removeAcentos($palavra);
+                $palavraAuxiliar = $palavra;
+                $listaLetrasNaoUsadas = [];
 
-            foreach ($listaLetras as $index=>$letra) {
-                if (!empty($palavraAuxiliar)) {
-                    $posicaoLetra = strpos($palavraAuxiliar, $letra);
+                foreach ($listaLetras as $index=>$letra) {
+                    if (!empty($palavraAuxiliar)) {
+                        $posicaoLetra = strpos($palavraAuxiliar, $letra);
 
-                    if ($posicaoLetra === false) {
-                        $listaLetrasNaoUsadas[] = $letra;
+                        if ($posicaoLetra === false) {
+                            $listaLetrasNaoUsadas[] = $letra;
+                        } else {
+                            $palavraAuxiliar = substr_replace($palavraAuxiliar, '', $posicaoLetra, 1);
+                        }
                     } else {
-                        $palavraAuxiliar = substr_replace($palavraAuxiliar, '', $posicaoLetra, 1);
+                        $letrasNaoUsadas = array_slice($listaLetras, $index);
+                        $listaLetrasNaoUsadas = array_merge($listaLetrasNaoUsadas, $letrasNaoUsadas);
+                        break;
                     }
-                } else {
-                    $letrasNaoUsadas = array_slice($listaLetras, $index);
-                    $listaLetrasNaoUsadas = array_merge($listaLetrasNaoUsadas, $letrasNaoUsadas);
-                    break;
+                }
+
+                if (empty($palavraAuxiliar)) {
+                    $palavraConstruida['palavra'] = $palavra;
+                    $palavraConstruida['letrasNaoUsadas'] = $listaLetrasNaoUsadas;
+                    
+                    $listaPalavrasMontadas[] = $palavraConstruida;
                 }
             }
 
-            if (empty($palavraAuxiliar)) {
-                $palavraConstruida['palavra'] = $palavra;
-                $palavraConstruida['letrasNaoUsadas'] = $listaLetrasNaoUsadas;
-                
-                $listaPalavrasMontadas[] = $palavraConstruida;
-            }
+            return $listaPalavrasMontadas;
+        } catch (Throwable $t) {
+            throw new Error('Erro ao construir as palavras');
         }
-
-        return $listaPalavrasMontadas;
     }
 
     private function pontuaPalavrasMontadas($listaPalavrasMontadas)
     {
-        $listaPalavrasPontuadas = [];
+        try {
+            $listaPalavrasPontuadas = [];
 
-        foreach ($listaPalavrasMontadas as $palavrasMontadas) {
-            $listaLetrasPalavra = $this->retornaListaCaracteres($palavrasMontadas['palavra']);
+            foreach ($listaPalavrasMontadas as $palavrasMontadas) {
+                $listaLetrasPalavra = $this->retornaListaCaracteres($palavrasMontadas['palavra']);
+                
+                $totalPontos = array_reduce($listaLetrasPalavra, function($pontos, $letra) {
+                    $pontoLetra = $this->retornaPontoLetra($letra);
+                    $pontos += $pontoLetra;
+
+                    return $pontos;
+                }, 0);
+                
+                $palavrasMontadas['pontos'] = $totalPontos;
+
+                $listaPalavrasPontuadas[$totalPontos][] = $palavrasMontadas;
+            }
             
-            $totalPontos = array_reduce($listaLetrasPalavra, function($pontos, $letra) {
-                $pontoLetra = $this->retornaPontoLetra($letra);
-                $pontos += $pontoLetra;
-
-                return $pontos;
-            }, 0);
-            
-            $palavrasMontadas['pontos'] = $totalPontos;
-
-            $listaPalavrasPontuadas[$totalPontos][] = $palavrasMontadas;
+            return $listaPalavrasPontuadas;
+        } catch (Throwable $t) {
+            throw new Error('Erro ao pontuar as palavras');
         }
-        
-        return $listaPalavrasPontuadas;
     }
 
     private function retornaPontoLetra($letra)
@@ -184,19 +309,23 @@ class MontaPalavras
 
     private function retornaPalavraMelhorPontuacao($listaPalavrasPontuadas)
     {
-        $palavrasMelhorPontuacao = $this->comparaPontos($listaPalavrasPontuadas);
-
-        if (count($palavrasMelhorPontuacao) > 1) {
-            $palavrasMelhorPontuacao = $this->comparaTamanho($palavrasMelhorPontuacao);
+        try {
+            $palavrasMelhorPontuacao = $this->comparaPontos($listaPalavrasPontuadas);
 
             if (count($palavrasMelhorPontuacao) > 1) {
-                $this->comparaOrdemAlfabetica($palavrasMelhorPontuacao);
-            }
-        }
+                $palavrasMelhorPontuacao = $this->comparaTamanho($palavrasMelhorPontuacao);
 
-        $palavra = array_shift($palavrasMelhorPontuacao);
-        
-        return $palavra;
+                if (count($palavrasMelhorPontuacao) > 1) {
+                    $this->comparaOrdemAlfabetica($palavrasMelhorPontuacao);
+                }
+            }
+
+            $palavra = array_shift($palavrasMelhorPontuacao);
+            
+            return $palavra;
+        } catch (Throwable $t) {
+            throw new Error('Erro ao escolher a melhor palavra');
+        }
     }
 
     private function comparaPontos($listaPalavrasPontuadas)
