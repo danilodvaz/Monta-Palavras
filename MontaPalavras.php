@@ -147,7 +147,7 @@ class MontaPalavras
     private function retornaListaCaracteres($valor)
     {
         if (!is_array($valor)) {
-            if (is_string($valor)) {
+            if (is_string($valor) && !empty($valor)) {
                 $valor = str_split($valor);
             } else {
                 $valor = [];
