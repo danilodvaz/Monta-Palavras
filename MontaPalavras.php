@@ -28,7 +28,7 @@ class MontaPalavras
                 $letrasValidas = $this->retornaLetras($entrada);
 
                 if ($entrada != '0' && $letrasValidas) {
-                    $melhorPalavra = '';
+                    $melhorPalavra = [];
                     $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
 
                     $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas, $listaBancoPalavras);
@@ -207,7 +207,18 @@ class MontaPalavras
     }
 
     /**
+     * Método responsável por montar as palavras
      * 
+     * Recebe as letras válidas informadas pelo usuário e a lista de palavras
+     * do banco de palavras e constroi uma nova lista com todas as palavras 
+     * formadas por aquelas letras. Junto com a palavra formada, também é
+     * retornada as letras válidas que não foram utilizadas. Caso não seja
+     * formada nenhuma palavra, é retornado uma lista vazia.
+     * 
+     * @param string $letrasValidas Letras válidas para formar as palavras
+     * @param array $listaBancoPalavras Lista de todas as palavras disponibilizadas
+     * 
+     * @return array
      */
     private function constroiPalavras($letrasValidas, $listaBancoPalavras)
     {
@@ -250,6 +261,17 @@ class MontaPalavras
         }
     }
 
+    /**
+     * Método responsável por pontuar as palavras formadas
+     * 
+     * Recebe uma lista com as palavras montadas e realiza a pontuação de cada
+     * palavra de acordo com os valores de cada letra. Retorna uma nova lista
+     * com as palavras pontuadas e agrupadas pelo número de pontos.
+     * 
+     * @param array $listaPalavrasMontadas Lista com todas as palavras montadas
+     * 
+     * @return array
+     */
     private function pontuaPalavrasMontadas($listaPalavrasMontadas)
     {
         try {
@@ -276,6 +298,13 @@ class MontaPalavras
         }
     }
 
+    /**
+     * Método responsável por retornar o ponto de cada letra
+     * 
+     * @param string $letra Letra que será pontuada
+     * 
+     * @return int
+     */
     private function retornaPontoLetra($letra)
     {
         $pontos = [
@@ -307,6 +336,20 @@ class MontaPalavras
         return $pontos[$letra];
     }
 
+    /**
+     * Método responsável por retornar a palavra com melhor pontuação
+     * 
+     * Recebe a lista com as palavras pontuadas e agrupadas pelos pontos.
+     * O primeiro critério para escolher a palavra com melhor pontuação é 
+     * a maior quantidade de pontos daquela palavra. Caso exista mais de uma
+     * palavra com o maior número de pontos, é levado em consideração o tamanho
+     * daquelas palavras. Caso as palavras tenham o mesmo tamanho, é levado em
+     * consideração a ordem alfabética das palavras.
+     * 
+     * @param array $listaPalavrasPontuadas Lista com as palavras pontuadas
+     * 
+     * @return array
+     */
     private function retornaPalavraMelhorPontuacao($listaPalavrasPontuadas)
     {
         try {
@@ -328,6 +371,16 @@ class MontaPalavras
         }
     }
 
+    /**
+     * Método responsável por retornar as palavras com maior pontuação
+     * 
+     * Recebe a lista de palavras pontuadas e agrupadas pelos pontos, ordena de
+     * forma decrescente e retorna apenas as palavras com a maior pontuação
+     * 
+     * @param array $listaPalavrasPontuadas Lista com as palavras pontuadas
+     * 
+     * @return array
+     */
     private function comparaPontos($listaPalavrasPontuadas)
     {
         krsort($listaPalavrasPontuadas);
@@ -336,6 +389,16 @@ class MontaPalavras
         return $palavrasMelhorPontuacao;
     }
 
+    /**
+     * Método responsável por retornar apenas as menores palavras
+     * 
+     * Recebe a lista de palavras com a maior pontuação e retorna apenas 
+     * aquelas palavras com o menor tamanho
+     * 
+     * @param array $listaPalavras Lista de palavras com maior pontuação
+     * 
+     * @return array
+     */
     private function comparaTamanho($listaPalavras)
     {
         $primeiraPalavra = array_shift($listaPalavras);
@@ -358,6 +421,16 @@ class MontaPalavras
         return $listaMenorPalavra;
     }
 
+    /**
+     * Método responsável por ordenar as palavras em ordem alfabética
+     * 
+     * Recebe a lista com as menores palavras com maior pontuação e realiza a
+     * ordeção de forma alfabética
+     * 
+     * @param array $listaPalavras Lista das menores palavras com maior pontuação
+     * 
+     * @return void
+     */
     private function comparaOrdemAlfabetica(&$listaPalavras)
     {
         function desempataOrdem($a, $b)
@@ -368,6 +441,18 @@ class MontaPalavras
         usort($listaPalavras, 'desempataOrdem');
     }
 
+    /**
+     * Método responsável por modelar e imprimir o resultado
+     * 
+     * Recebe a melhor palavra escolhida e as letras informadas, organiza os dados
+     * e imprime no terminal em uma forma mais legível
+     * 
+     * @param array $melhorPalavra A melhor palavra montada
+     * @param string $letrasValidas Letras válidas informadas pelo usuário
+     * @param string $caracteresInvalidos Caracteres não válidos informados pelo usuário
+     * 
+     * @return void
+     */
     private function imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos)
     {
         if (!empty($melhorPalavra)) {
@@ -392,6 +477,14 @@ class MontaPalavras
         print_r("\n\n");
     }
 
+    /**
+     * Método responsável por tratar as letras não utilizadas na montagem da melhor palavra
+     * 
+     * @param string|array $letrasNaoUsadas Pode ser uma string ou uma lista das letras não utilizadas
+     * @param string $caracteresInvalidos Caracteres não válidos informados pelo usuário
+     * 
+     * @return string
+     */
     private function constroiLetrasNaoUsadas($letrasNaoUsadas, $caracteresInvalidos)
     {
         $naoUsadas = $this->retornaListaCaracteres($letrasNaoUsadas);
