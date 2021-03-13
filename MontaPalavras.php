@@ -3,7 +3,8 @@
 class MontaPalavras
 {
     private const MSG_TITULO = "Monta Palavras\n\n";
-    private const MSG_ENTRADA = 'Digite as letras disponíveis nesta jogada: ';
+    private const MSG_ENTRADA_LETRAS = 'Digite as letras disponíveis nesta jogada: ';
+    private const MSG_ENTRADA_POSICAO = 'Digite a posição bônus: ';
     private const MSG_SEPARADOR = "============================================================\n";
     private const BANCO_PALAVRAS = 'BancoPalavras.json';
 
@@ -35,23 +36,25 @@ class MontaPalavras
 
             do {
                 print_r(self::MSG_SEPARADOR);
-                $entrada = mb_strtoupper(readline(self::MSG_ENTRADA));
-                $letrasValidas = $this->retornaLetras($entrada);
+                $letrasDisponiveis = mb_strtoupper(readline(self::MSG_ENTRADA_LETRAS));
+                $posicaoBonus = (int)readline(self::MSG_ENTRADA_POSICAO);
 
-                if ($entrada != '0' && $letrasValidas) {
+                $letrasValidas = $this->retornaLetras($letrasDisponiveis);
+
+                if ($letrasDisponiveis != '0' && $letrasValidas) {
                     $melhorPalavra = [];
-                    $caracteresInvalidos = $this->retornaCaracteresEspeciais($entrada);
+                    $caracteresInvalidos = $this->retornaCaracteresEspeciais($letrasDisponiveis);
 
                     $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas, $listaBancoPalavras);
 
                     if (!empty($listaPalavrasMontadas)) {
-                        $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas);
+                        $listaPalavrasPontuadas = $this->pontuaPalavrasMontadas($listaPalavrasMontadas, $posicaoBonus);
                         $melhorPalavra = $this->retornaPalavraMelhorPontuacao($listaPalavrasPontuadas);
                     }
 
                     $this->imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos);
                 }
-            } while ($entrada != '0');
+            } while ($letrasDisponiveis != '0');
         } catch (Throwable $t) {
             print_r($t->getMessage());
         }
@@ -276,30 +279,39 @@ class MontaPalavras
      * Método responsável por pontuar as palavras formadas
      * 
      * Recebe uma lista com as palavras montadas e realiza a pontuação de cada
-     * palavra de acordo com os valores de cada letra. Retorna uma nova lista
-     * com as palavras pontuadas e agrupadas pelo número de pontos.
+     * palavra de acordo com os valores de cada letra. Caso o parâmetro bonus
+     * seja maior que zero, o ponto da letra naquela posição será duplicado.
+     * Retorna uma nova lista com as palavras pontuadas e agrupadas pelo número
+     * de pontos.
      * 
      * @param array $listaPalavrasMontadas Lista com todas as palavras montadas
+     * @param int $posicaoBonus Posição bonus que duplicará valor da letra
      * 
      * @return array
      */
-    private function pontuaPalavrasMontadas($listaPalavrasMontadas)
+    private function pontuaPalavrasMontadas($listaPalavrasMontadas, $posicaoBonus)
     {
         try {
             $listaPalavrasPontuadas = [];
 
             foreach ($listaPalavrasMontadas as $palavrasMontadas) {
                 $listaLetrasPalavra = $this->retornaListaCaracteres($palavrasMontadas['palavra']);
-                
-                $totalPontos = array_reduce($listaLetrasPalavra, function($pontos, $letra) {
+                $bonusAuxiliar = $posicaoBonus;
+
+                $totalPontos = array_reduce($listaLetrasPalavra, function($pontos, $letra) use (&$bonusAuxiliar) {
                     $pontoLetra = $this->retornaPontoLetra($letra);
+
+                    if ($bonusAuxiliar === 1) {
+                        $pontoLetra = $pontoLetra * 2;
+                    }
+
                     $pontos += $pontoLetra;
+                    $bonusAuxiliar--;
 
                     return $pontos;
                 }, 0);
                 
                 $palavrasMontadas['pontos'] = $totalPontos;
-
                 $listaPalavrasPontuadas[$totalPontos][] = $palavrasMontadas;
             }
             
