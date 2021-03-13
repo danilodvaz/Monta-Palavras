@@ -5,7 +5,18 @@ class MontaPalavras
     private const MSG_TITULO = "Monta Palavras\n\n";
     private const MSG_ENTRADA = 'Digite as letras disponíveis nesta jogada: ';
     private const MSG_SEPARADOR = "============================================================\n";
-    private const DIR_BANCO_PALAVRAS = './BancoPalavras.json';
+    private const BANCO_PALAVRAS = 'BancoPalavras.json';
+
+    /**
+     * Diretório do arquivo onde está localizado o banco de palavras
+     * @var string
+     */
+    private $dirBancoPalavras;
+
+    public function __construct()
+    {
+        $this->dirBancoPalavras = dirname(__FILE__) . '/' . self::BANCO_PALAVRAS;
+    }
 
     /**
      * Método principal da classe que inicia o jogo
@@ -194,10 +205,10 @@ class MontaPalavras
     private function retornaBancoPalavras()
     {
         try {
-            $this->verificaArquivoExiste(self::DIR_BANCO_PALAVRAS);
-            $this->verificaPermissaoLeitura(self::DIR_BANCO_PALAVRAS);
+            $this->verificaArquivoExiste($this->dirBancoPalavras);
+            $this->verificaPermissaoLeitura($this->dirBancoPalavras);
 
-            $bancoPalavrasJson = file_get_contents(self::DIR_BANCO_PALAVRAS);
+            $bancoPalavrasJson = file_get_contents($this->dirBancoPalavras);
             $bancoPalavras = json_decode($bancoPalavrasJson, true);
 
             return $bancoPalavras['palavras'];
