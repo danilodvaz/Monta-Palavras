@@ -444,12 +444,9 @@ class MontaPalavras
      */
     private function comparaOrdemAlfabetica(&$listaPalavras)
     {
-        function desempataOrdem($a, $b)
-        {
+        usort($listaPalavras, function($a, $b) {
             return strnatcmp($a['palavra'], $b['palavra']);
-        }
-
-        usort($listaPalavras, 'desempataOrdem');
+        });
     }
 
     /**
