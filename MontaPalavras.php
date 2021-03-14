@@ -59,51 +59,6 @@ class MontaPalavras
         }
     }
 
-    private function retornaEntradas()
-    {
-        list($letrasValidas, $caracteresInvalidos) = $this->retornaLetrasDisponiveis();
-        $posicaoBonus = false;
-
-        if ($letrasValidas) {
-            $posicaoBonus = $this->retornaPosicaoBonus();
-        }
-
-        return [$letrasValidas, $caracteresInvalidos, $posicaoBonus];
-    }
-
-    private function retornaLetrasDisponiveis()
-    {
-        $letrasDisponiveis = mb_strtoupper(readline(self::MSG_ENTRADA_LETRAS));
-        $caracteresInvalidos = '';
-
-        if ($letrasDisponiveis !== '0') {
-            $letrasValidas = $this->retornaLetras($letrasDisponiveis);
-
-            if ($letrasValidas) {
-                $caracteresInvalidos = $this->retornaCaracteresEspeciais($letrasDisponiveis);
-            } else {
-                print_r(self::MSG_LETRAS_INVALIDAS);
-            }
-        } else {
-            $letrasValidas = '0';
-        }
-
-        return [$letrasValidas, $caracteresInvalidos];
-    }
-
-    private function retornaPosicaoBonus()
-    {
-        $posicaoBonus = readline(self::MSG_ENTRADA_POSICAO);
-
-        $posicaoBonus = $this->converteStringParaInteiro($posicaoBonus);
-
-        if ($posicaoBonus === false || $posicaoBonus < 0) {
-            print_r(self::MSG_BONUS_INVALIDO);
-        }
-
-        return $posicaoBonus;
-    }
-
     /**
      * Verifica se um arquivo existe 
      * 
@@ -239,6 +194,16 @@ class MontaPalavras
         return strtr($palavraMaiuscula, $substituir);
     }
 
+    /**
+     * Método responsável por converter uma string para um inteiro
+     * 
+     * Verifica se a string informada é uma string numérica e, caso verdadeiro,
+     * retorna a string numérica convertida em um número inteiro.
+     * 
+     * @param string $string Valor a ser convertido
+     * 
+     * @return int|bool
+     */
     private function converteStringParaInteiro($string)
     {
         if (is_numeric($string)) {
@@ -246,6 +211,75 @@ class MontaPalavras
         }
 
         return false;
+    }
+
+    /**
+     * Método responsável por centralizar a leitura do que for digitado
+     * 
+     * Realiza as chamadas dos métodos de entrada
+     * 
+     * @return array
+     */
+    private function retornaEntradas()
+    {
+        list($letrasValidas, $caracteresInvalidos) = $this->retornaLetrasDisponiveis();
+        $posicaoBonus = false;
+
+        if ($letrasValidas) {
+            $posicaoBonus = $this->retornaPosicaoBonus();
+        }
+
+        return [$letrasValidas, $caracteresInvalidos, $posicaoBonus];
+    }
+
+    /**
+     * Método responsável por ler as palavras digitadas
+     * 
+     * Recebe os valores digitados referentes as letras para formar as palavras.
+     * Realiza as validações e tratativas necessárias e retorna as letras válidas
+     * e os caracteres inválidos.
+     * 
+     * @return array
+     */
+    private function retornaLetrasDisponiveis()
+    {
+        $letrasDisponiveis = mb_strtoupper(readline(self::MSG_ENTRADA_LETRAS));
+        $caracteresInvalidos = '';
+
+        if ($letrasDisponiveis !== '0') {
+            $letrasValidas = $this->retornaLetras($letrasDisponiveis);
+
+            if ($letrasValidas) {
+                $caracteresInvalidos = $this->retornaCaracteresEspeciais($letrasDisponiveis);
+            } else {
+                print_r(self::MSG_LETRAS_INVALIDAS);
+            }
+        } else {
+            $letrasValidas = '0';
+        }
+
+        return [$letrasValidas, $caracteresInvalidos];
+    }
+
+    /**
+     * Método responsável por ler a posição bônus
+     * 
+     * Recebe os valores digitados referentes a posição bônus. Realiza as
+     * validações e tratativas necessárias e retorna a posição.
+     * 
+     * @return int|bool
+     */
+    private function retornaPosicaoBonus()
+    {
+        $posicaoBonus = readline(self::MSG_ENTRADA_POSICAO);
+
+        $posicaoBonus = $this->converteStringParaInteiro($posicaoBonus);
+
+        if ($posicaoBonus === false || $posicaoBonus < 0) {
+            print_r(self::MSG_BONUS_INVALIDO);
+        }
+
+        return $posicaoBonus;
     }
 
     /**
