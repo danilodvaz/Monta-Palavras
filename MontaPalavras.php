@@ -195,7 +195,7 @@ class MontaPalavras
     {
         if (!is_array($valor)) {
             if (is_string($valor) && !empty($valor)) {
-                $valor = str_split($valor);
+                $valor = mb_str_split($valor);
             } else {
                 $valor = [];
             }
