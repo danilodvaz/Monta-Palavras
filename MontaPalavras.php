@@ -2,10 +2,12 @@
 
 class MontaPalavras
 {
-    private const MSG_TITULO = "Monta Palavras\n\n";
+    private const MSG_TITULO = "Monta Palavras\n";
     private const MSG_ENTRADA_LETRAS = 'Digite as letras disponíveis nesta jogada: ';
     private const MSG_ENTRADA_POSICAO = 'Digite a posição bônus: ';
-    private const MSG_SEPARADOR = "============================================================\n";
+    private const MSG_LETRAS_INVALIDAS = "\nNão foi informado nenhuma letra válida.\nLetras válidas: De A até Z, maiúscula ou minúscula e sem acentos ou 'Ç'.\n";
+    private const MSG_BONUS_INVALIDO = "\nPosição bônus deve ser um número maior ou igual a 1.\nPara desconsiderar o bônus, digite 0.\n";
+    private const MSG_SEPARADOR = "\n============================================================\n";
     private const BANCO_PALAVRAS = 'BancoPalavras.json';
 
     /**
@@ -36,14 +38,11 @@ class MontaPalavras
 
             do {
                 print_r(self::MSG_SEPARADOR);
-                $letrasDisponiveis = mb_strtoupper(readline(self::MSG_ENTRADA_LETRAS));
-                $posicaoBonus = (int)readline(self::MSG_ENTRADA_POSICAO);
 
-                $letrasValidas = $this->retornaLetras($letrasDisponiveis);
+                list($letrasValidas, $caracteresInvalidos, $posicaoBonus) = $this->retornaEntradas();
 
-                if ($letrasDisponiveis != '0' && $letrasValidas) {
+                if ($letrasValidas && is_int($posicaoBonus)) {
                     $melhorPalavra = [];
-                    $caracteresInvalidos = $this->retornaCaracteresEspeciais($letrasDisponiveis);
 
                     $listaPalavrasMontadas = $this->constroiPalavras($letrasValidas, $listaBancoPalavras);
 
@@ -54,10 +53,55 @@ class MontaPalavras
 
                     $this->imprimeResultado($melhorPalavra, $letrasValidas, $caracteresInvalidos);
                 }
-            } while ($letrasDisponiveis != '0');
+            } while ($letrasValidas !== '0');
         } catch (Throwable $t) {
             print_r($t->getMessage());
         }
+    }
+
+    private function retornaEntradas()
+    {
+        list($letrasValidas, $caracteresInvalidos) = $this->retornaLetrasDisponiveis();
+        $posicaoBonus = false;
+
+        if ($letrasValidas) {
+            $posicaoBonus = $this->retornaPosicaoBonus();
+        }
+
+        return [$letrasValidas, $caracteresInvalidos, $posicaoBonus];
+    }
+
+    private function retornaLetrasDisponiveis()
+    {
+        $letrasDisponiveis = mb_strtoupper(readline(self::MSG_ENTRADA_LETRAS));
+        $caracteresInvalidos = '';
+
+        if ($letrasDisponiveis !== '0') {
+            $letrasValidas = $this->retornaLetras($letrasDisponiveis);
+
+            if ($letrasValidas) {
+                $caracteresInvalidos = $this->retornaCaracteresEspeciais($letrasDisponiveis);
+            } else {
+                print_r(self::MSG_LETRAS_INVALIDAS);
+            }
+        } else {
+            $letrasValidas = '0';
+        }
+
+        return [$letrasValidas, $caracteresInvalidos];
+    }
+
+    private function retornaPosicaoBonus()
+    {
+        $posicaoBonus = readline(self::MSG_ENTRADA_POSICAO);
+
+        $posicaoBonus = $this->converteStringParaInteiro($posicaoBonus);
+
+        if ($posicaoBonus === false || $posicaoBonus < 0) {
+            print_r(self::MSG_BONUS_INVALIDO);
+        }
+
+        return $posicaoBonus;
     }
 
     /**
@@ -132,7 +176,7 @@ class MontaPalavras
      */
     private function retornaCaracteresEspeciais($string)
     {
-        return preg_replace("/[a-z ]+/i", "", $string); 
+        return preg_replace("/[a-z ]+/i", "", $string);
     }
 
     /**
@@ -193,6 +237,15 @@ class MontaPalavras
         $palavraMaiuscula = mb_strtoupper($palavra);
 
         return strtr($palavraMaiuscula, $substituir);
+    }
+
+    private function converteStringParaInteiro($string)
+    {
+        if (is_numeric($string)) {
+            return (int)$string;
+        }
+
+        return false;
     }
 
     /**
@@ -484,7 +537,7 @@ class MontaPalavras
 
             $letraNaoUsadas = $this->constroiLetrasNaoUsadas($listaLetrasNaoUsadas, $caracteresInvalidos);
         } else {
-            $mensagem = "Nenhuma palavra encontrada";
+            $mensagem = "\nNenhuma palavra encontrada";
             $letraNaoUsadas = $this->constroiLetrasNaoUsadas($letrasValidas, $caracteresInvalidos);
         }
 
@@ -494,7 +547,7 @@ class MontaPalavras
             print_r("\nSobraram: $letraNaoUsadas");
         }
 
-        print_r("\n\n");
+        print_r("\n");
     }
 
     /**
