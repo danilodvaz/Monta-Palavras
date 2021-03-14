@@ -1,12 +1,60 @@
 <?php
 
+/**
+ * O método principal da classe é o "iniciaJogo", nele é realizada a chamada
+ * dos demais métodos. Inicialmente, é carregado a partir de um arquivo json
+ * (BancoPalavras.json) todas as palavras disponibilizadas para o jogo. Após
+ * carregar as palavras, é iniciado uma estrutura de repetição, onde será 
+ * realizado a leitura dos valores informados pelo usuário. Caso os valores
+ * informados sejam válidos, é iniciado a montagem das palavras. Se for
+ * informado o valor 0 (zero) na entrada referente as letras, a aplicação é 
+ * finalizada.
+ * 
+ * Para montar as palavras com o conjunto de letras informados, é realizado um
+ * loop percorrendo todas as palavras disponibilizadas. Para cada palavra, é
+ * removido os acentos, por meio de substituição dos caracteres, e alterada para
+ * a forma maiúscula. Ainda para cada palavra, é realizado um loop das letras
+ * válidas, dentro desse loop, é verificado se a letra existe na palavra. Se a
+ * letra existir na palavra, ela é removida dela, se não existir, a letra é 
+ * colocada em uma lista de letras não utilizadas. O loop é executado até as 
+ * letras da palavra acabarem ou as letras informadas acabarem. Se as letras da
+ * palavra tiverem acabado, a palavra é adicionada na lista de palavras montadas,
+ * junto com as letras que não foram utilizadas. Esse processo é realizado para
+ * todas as palavras disponibilizadas. Infelizmente, não tive tempo para implementar
+ * e testar adequadamente o "Ponto Extra" de "Multiplas palavras", mas acredito
+ * que utilizando recursividade neste ponto, chamando o método "constroiPalavras"
+ * dentro dele mesmo, passando as letras não usadas para montar aquela palavra e
+ * ajustando os métodos de pontuação, seria possível alcançar o resultado.
+ * 
+ * Após montar as palavras, é verificado se alguma palavra foi realmente montada.
+ * Caso existam palavras montadas, é iniciado a pontação daquelas palavras através
+ * de um loop na lista de palavras montadas. Para cada palavra que foi montada,
+ * as letras são divididas em um array, onde é aplicado o reduce para realizar
+ * a soma dos pontos da palavra. Para cada letra da palavra, é retornado a sua
+ * pontuação e verificado se está na posição bônus. Se estiver na posição bônus
+ * a pontuação daquela letra é dobrado. Após realizar a soma dos pontos daquela
+ * palavra, ela é adicionada em uma lista que já agrupa as palavras com a mesma
+ * quantidade de pontos.
+ * 
+ * Pontuando e agrupando todas as palavras que foram montadas, é possível escolher
+ * a palavra com a maior pontuação. A lista de palavras montadas é ordenada de
+ * forma decrescente pelo índice, que é a pontuação daquelas palavras, e retornado
+ * a primeira posição. Caso exista mais de uma palavra com aquela pontuação, é
+ * realizado a comparação pelo tamanho daquelas palavras, onde é retornado uma
+ * lista com as menores palavras. Caso seja mais de uma palavra, é verificado a
+ * ordem alfabética daquelas palavras realizando uma ordenação do array pela
+ * palavra e retornando a primeira posição.
+ * 
+ * Para finalizar, a melhor palavra é impressa na tela.
+ */
+
 class MontaPalavras
 {
     private const MSG_TITULO = "Monta Palavras\n";
     private const MSG_ENTRADA_LETRAS = 'Digite as letras disponíveis nesta jogada: ';
     private const MSG_ENTRADA_POSICAO = 'Digite a posição bônus: ';
     private const MSG_LETRAS_INVALIDAS = "\nNão foi informado nenhuma letra válida.\nLetras válidas: De A até Z, maiúscula ou minúscula e sem acentos ou 'Ç'.\n";
-    private const MSG_BONUS_INVALIDO = "\nPosição bônus deve ser um número maior ou igual a 1.\nPara desconsiderar o bônus, digite 0.\n";
+    private const MSG_BONUS_INVALIDO = "\nPosição bônus deve ser um número inteiro maior ou igual a 1.\nPara desconsiderar o bônus, digite 0.\n";
     private const MSG_SEPARADOR = "\n============================================================\n";
     private const BANCO_PALAVRAS = 'BancoPalavras.json';
 
