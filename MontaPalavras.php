@@ -276,6 +276,7 @@ class MontaPalavras
         $posicaoBonus = $this->converteStringParaInteiro($posicaoBonus);
 
         if ($posicaoBonus === false || $posicaoBonus < 0) {
+            $posicaoBonus = false;
             print_r(self::MSG_BONUS_INVALIDO);
         }
 
