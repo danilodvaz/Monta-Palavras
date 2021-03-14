@@ -1,6 +1,6 @@
 # Monta Palavras
 
-Jogo que monta palavras de acordo com as letras informadas. As palavras são formadas a partir de uma lista de palavras e são pontuadas de acordo com os pontos de cada letra.
+Jogo que monta palavras de acordo com as letras informadas. As palavras são formadas a partir de uma lista de palavras e são pontuadas de acordo com os pontos de cada letra. É possível dobrar o valor de uma letra, informando a posição daquela letra na palavra.
 
 - [Requisitos](#requisitos)
 - [Iniciando o jogo](#iniciando-o-jogo)
